@@ -4,9 +4,11 @@ A lightweight Next.js 15 dashboard for an organisation-wide Hacktoberfest: GitHu
 
 ## Setup
 
-1. Copy `.env.example` to `.env` and fill in `GITHUB_TOKEN`, `GITHUB_ORG`, `ADMIN_PASSWORD`, and `SYNC_SECRET`. The token needs read access to the organisation's repositories.
+1. Copy `.env.example` to `.env` and fill in `GITHUB_TOKEN`, `GITHUB_ORG`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`, and `SYNC_SECRET`. The token needs read access to the organisation's repositories.
 2. `npm install`
 3. Start locally with `npm run dev`, then visit `http://localhost:3000`.
+
+Admin access requires both configured credentials. Sign in at `/admin` with `ADMIN_USERNAME` and `ADMIN_PASSWORD`; sessions expire after eight hours. Changing either credential invalidates existing sessions. Use **Sign out** to end the session on your browser.
 
 The SQLite database is created automatically at `./data/app.db`; set `DATABASE_URL` only when you need another path.
 

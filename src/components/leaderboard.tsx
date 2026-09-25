@@ -250,7 +250,12 @@ export function Leaderboard({
               <div
                 className="rank-list"
                 role="rowgroup"
-                style={{ height: rows.length * 88 }}
+                style={
+                  {
+                    height: rows.length * 88,
+                    "--row-count": rows.length,
+                  } as React.CSSProperties
+                }
               >
                 {rows.map((person, index) => (
                   <div

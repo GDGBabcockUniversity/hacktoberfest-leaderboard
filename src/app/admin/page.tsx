@@ -1,4 +1,4 @@
-import { isAdmin } from "@/lib/auth";
+import { isAdmin, signIn, signOut } from "@/lib/auth";
 import { snapshot } from "@/lib/queries";
 import {
   addRound,
@@ -16,13 +16,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 
-export default async function Admin() {
-  if (!(await isAdmin())) return <Login />;
+export default async function Admin({ searchParams }: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  if (!(await isAdmin())) return <Login failed={(await searchParams).error === "invalid"} />;
   const { people, rounds } = await snapshot();
   const watchedRepos = JSON.parse(db.select().from(syncState).where(eq(syncState.key, "watched_repos")).get()?.value || "[]") as string[];
   return (
     <main>
-      <h1 className="mb-6 text-3xl font-black">Admin</h1>
+      <div className="mb-6 flex items-center justify-between gap-4">
+        <h1 className="text-3xl font-black">Admin</h1>
+        <form action={async () => {
+          "use server";
+          await signOut();
+          redirect("/admin");
+        }}>
+          <Button type="submit" variant="outline">Sign out</Button>
+        </form>
+      </div>
       <Card className="admin-panel mb-8 p-5">
         <h2 className="font-bold">Watched repositories</h2>
         <p className="mt-2 muted">Enter a repository name or a full <code>organisation/repository</code> name.</p>
@@ -99,30 +110,33 @@ export default async function Admin() {
     </main>
   );
 }
-function Login() {
+function Login({ failed }: { failed: boolean }) {
   return (
-    <main>
-      <h1 className="mb-4 text-3xl font-black">Admin sign in</h1>
+    <main className="flex flex-col items-center justify-center">
+      <h1 className="mb-4 text-center text-3xl font-black">Admin sign in</h1>
       <form
         action={async (f) => {
           "use server";
-          const { cookies } = await import("next/headers");
-          if (String(f.get("password")) === process.env.ADMIN_PASSWORD)
-            (await cookies()).set("admin_session", String(f.get("password")), {
-              httpOnly: true,
-              sameSite: "lax",
-              path: "/",
-            });
+          const username = f.get("username");
+          const password = f.get("password");
+          if (typeof username !== "string" || typeof password !== "string" || !(await signIn(username, password))) {
+            redirect("/admin?error=invalid");
+          }
           redirect("/admin");
         }}
-        className="admin-panel flex max-w-md flex-col gap-3 rounded-xl border p-5 shadow-sm"
+        className="admin-panel flex w-full max-w-md flex-col gap-3 rounded-xl border p-5 shadow-sm"
       >
+        <label htmlFor="admin-username">Username</label>
+        <Input id="admin-username" name="username" autoComplete="username" required />
+        <label htmlFor="admin-password">Password</label>
         <Input
+          id="admin-password"
           name="password"
           type="password"
-          placeholder="Password"
+          autoComplete="current-password"
           required
         />
+        {failed && <p role="alert" className="text-sm text-destructive">Invalid username or password.</p>}
         <Button type="submit">Sign in</Button>
       </form>
     </main>
