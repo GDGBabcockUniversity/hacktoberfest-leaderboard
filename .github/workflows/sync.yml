@@ -6,4 +6,5 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - run: curl --fail --request POST -H "x-sync-secret: ${{ secrets.SYNC_SECRET }}" "${{ secrets.LEADERBOARD_URL }}/api/sync"
+      - run: |
+          curl --fail --request POST -H "x-sync-secret: ${{ secrets.SYNC_SECRET }}" "${{ secrets.LEADERBOARD_URL }}/api/sync"
