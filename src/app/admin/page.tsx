@@ -1,6 +1,11 @@
 import { isAdmin } from "@/lib/auth";
 import { snapshot } from "@/lib/queries";
-import { addRound, addWatchedRepo, removeWatchedRepo } from "@/lib/actions";
+import {
+  addRound,
+  addWatchedRepo,
+  removeContributor,
+  removeWatchedRepo,
+} from "@/lib/actions";
 import { db } from "@/lib/db";
 import { syncState } from "@/lib/schema";
 import { eq } from "drizzle-orm";
@@ -22,7 +27,20 @@ export default async function Admin() {
         <h2 className="font-bold">Watched repositories</h2>
         <p className="mt-2 muted">Enter a repository name or a full <code>organisation/repository</code> name.</p>
         <form action={addWatchedRepo} className="mt-3 flex flex-wrap gap-2"><Input name="repo" placeholder="repository-name or org/repository" required className="w-auto" /><Button type="submit">Add repository</Button></form>
-        <div className="mt-3 flex flex-wrap gap-2">{watchedRepos.map((repo) => <form key={repo} action={async () => { "use server"; await removeWatchedRepo(repo); }}><Button variant="outline" className="admin-repo-button">{repo} ×</Button></form>)}</div>
+        <p className="mt-2 muted">Deleting a repository also removes its synced pull requests from the leaderboard.</p>
+        <div className="mt-3 flex flex-col gap-2">
+          {watchedRepos.map((repo) => (
+            <div key={repo} className="flex flex-wrap items-center justify-between gap-3 rounded-md border p-3">
+              <span className="break-all">{repo}</span>
+              <form action={removeWatchedRepo.bind(null, repo)}>
+                <Button type="submit" variant="destructive" size="sm" aria-label={`Delete ${repo}`}>
+                  Delete repository
+                </Button>
+              </form>
+            </div>
+          ))}
+          {!watchedRepos.length && <p className="muted">No watched repositories yet.</p>}
+        </div>
       </Card>
       <Card className="admin-panel mb-8 p-5">
         <h2 className="font-bold">GitHub contributors</h2>
@@ -31,6 +49,20 @@ export default async function Admin() {
           requests during GitHub sync. {people.filter((p) => p.id).length} are
           currently synced.
         </p>
+        <p className="mt-2 muted">Deleting a contributor removes their synced pull requests and trivia scores. A later GitHub sync may add them again.</p>
+        <div className="mt-3 flex flex-col gap-2">
+          {people.filter((person) => person.id).map((person) => (
+            <div key={person.id} className="flex flex-wrap items-center justify-between gap-3 rounded-md border p-3">
+              <span className="min-w-0 break-all">{person.displayName} <span className="muted">@{person.githubUsername}</span></span>
+              <form action={removeContributor.bind(null, person.githubUsername)}>
+                <Button type="submit" variant="destructive" size="sm" aria-label={`Delete contributor ${person.githubUsername}`}>
+                  Delete contributor
+                </Button>
+              </form>
+            </div>
+          ))}
+          {!people.some((person) => person.id) && <p className="muted">No synced contributors yet.</p>}
+        </div>
       </Card>
       <Card className="admin-panel mb-8 p-5">
         <h2 className="font-bold">Trivia rounds</h2>

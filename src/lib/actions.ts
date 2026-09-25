@@ -2,7 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "./db";
-import { syncState, triviaRounds, triviaScores } from "./schema";
+import {
+  participants,
+  pullRequests,
+  syncState,
+  triviaRounds,
+  triviaScores,
+} from "./schema";
 import { eq, and } from "drizzle-orm";
 import { requireAdmin } from "./auth";
 
@@ -62,5 +68,33 @@ export async function removeWatchedRepo(repo: string) {
   const current = db.select().from(syncState).where(eq(syncState.key, "watched_repos")).get();
   const repos = (JSON.parse(current?.value || "[]") as string[]).filter((item) => item !== repo);
   db.insert(syncState).values({ key: "watched_repos", value: JSON.stringify(repos) }).onConflictDoUpdate({ target: syncState.key, set: { value: JSON.stringify(repos) } }).run();
+  const repoName = repo.split("/").at(-1);
+  if (repoName) db.delete(pullRequests).where(eq(pullRequests.repo, repoName)).run();
+  refresh();
+}
+
+export async function removeContributor(username: string) {
+  await requireAdmin();
+  const normalizedUsername = username.trim().toLowerCase();
+  if (!normalizedUsername) return;
+
+  const person = db
+    .select({ id: participants.id })
+    .from(participants)
+    .where(eq(participants.githubUsername, normalizedUsername))
+    .get();
+
+  db.delete(pullRequests)
+    .where(eq(pullRequests.author, normalizedUsername))
+    .run();
+  if (person) {
+    db.delete(triviaScores)
+      .where(eq(triviaScores.participantId, person.id))
+      .run();
+    db.delete(participants)
+      .where(eq(participants.id, person.id))
+      .run();
+  }
   revalidatePath("/admin");
+  refresh();
 }
