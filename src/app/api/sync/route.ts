@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
       .split(",")
       .map((x) => x.trim())
       .filter(Boolean);
-    const watched = db.select().from(syncState).where(eq(syncState.key, "watched_repos")).get();
+    const watched = await db.select().from(syncState).where(eq(syncState.key, "watched_repos")).get();
     const repos = JSON.parse(watched?.value || "[]") as string[];
     if (!repos.length) return NextResponse.json({ error: "No watched repositories configured. Add repositories in Admin before syncing." }, { status: 400 });
     const profiles = new Map<string, { displayName: string; avatarUrl: string }>();
@@ -69,14 +69,14 @@ export async function POST(req: NextRequest) {
           };
           profiles.set(username, profile);
         }
-        db.insert(participants)
+        await db.insert(participants)
           .values({ githubUsername: username, ...profile })
           .onConflictDoUpdate({
             target: participants.githubUsername,
             set: profile,
           })
           .run();
-        db.insert(pullRequests)
+        await db.insert(pullRequests)
           .values({
             repo: pr.data.base.repo.name,
             number: pr.data.number,
@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
       page++;
     }
     }
-    db.insert(syncState)
+    await db.insert(syncState)
       .values({ key: "last_successful_sync", value: new Date().toISOString() })
       .onConflictDoUpdate({
         target: syncState.key,

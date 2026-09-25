@@ -2,7 +2,6 @@ import type { NextConfig } from "next";
 import { PHASE_DEVELOPMENT_SERVER } from "next/constants";
 const nextConfig: NextConfig = {
   output: "standalone",
-  serverExternalPackages: ["better-sqlite3"],
   images: {
     remotePatterns: [
       { hostname: "avatars.githubusercontent.com", protocol: "https", pathname: "**" },

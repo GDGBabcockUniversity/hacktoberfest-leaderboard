@@ -16,7 +16,7 @@ export async function liveLeaderboard(mode: "overall" | "contributors" = "overal
     rows,
     stats: { contributors: rows.length, merges: prs.length, repositories: new Set(prs.map(p => p.repo)).size, points: rows.reduce((sum, p) => sum + p.total, 0) },
     activity: [...prs].sort((a, b) => b.mergedAt.localeCompare(a.mergedAt)).slice(0, 5).map(p => ({ id: p.id, author: p.author, title: p.title, repo: p.repo, url: p.url, points: p.points, mergedAt: p.mergedAt })),
-    lastSync: db.select().from(syncState).where(eq(syncState.key, "last_successful_sync")).get()?.value ?? null,
+    lastSync: (await db.select().from(syncState).where(eq(syncState.key, "last_successful_sync")).get())?.value ?? null,
   };
 }
 export type LeaderboardData = Awaited<ReturnType<typeof liveLeaderboard>>;

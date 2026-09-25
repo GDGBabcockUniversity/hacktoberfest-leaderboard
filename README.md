@@ -4,13 +4,15 @@ A lightweight Next.js 15 dashboard for an organisation-wide Hacktoberfest: GitHu
 
 ## Setup
 
-1. Copy `.env.example` to `.env` and fill in `GITHUB_TOKEN`, `GITHUB_ORG`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`, and `SYNC_SECRET`. The token needs read access to the organisation's repositories.
-2. `npm install`
-3. Start locally with `npm run dev`, then visit `http://localhost:3000`.
+1. Create a Turso database, then copy its database URL and authentication token into `DATABASE_TURSO_DATABASE_URL` and `DATABASE_TURSO_AUTH_TOKEN`.
+2. Copy `.env.example` to `.env` and fill in `GITHUB_TOKEN`, `GITHUB_ORG`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`, and `SYNC_SECRET`. The token needs read access to the organisation's repositories.
+3. Run `npm run db:migrate` to create the tables in Turso.
+4. `npm install`
+5. Start locally with `npm run dev`, then visit `http://localhost:3000`.
 
 Admin access requires both configured credentials. Sign in at `/admin` with `ADMIN_USERNAME` and `ADMIN_PASSWORD`; sessions expire after eight hours. Changing either credential invalidates existing sessions. Use **Sign out** to end the session on your browser.
 
-The SQLite database is created automatically at `./data/app.db`; set `DATABASE_URL` only when you need another path.
+Add the same two Turso variables in Vercel’s Production environment before deploying. The app uses Turso for persistent data; it does not use a local `data/` folder.
 
 ## Trivia night runbook
 
