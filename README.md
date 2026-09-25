@@ -12,7 +12,7 @@ A lightweight Next.js 15 dashboard for an organisation-wide Hacktoberfest: GitHu
 
 Admin access requires both configured credentials. Sign in at `/admin` with `ADMIN_USERNAME` and `ADMIN_PASSWORD`; sessions expire after eight hours. Changing either credential invalidates existing sessions. Use **Sign out** to end the session on your browser.
 
-Add the same two Turso variables in Vercel’s Production environment before deploying. The app uses Turso for persistent data; it does not use a local `data/` folder.
+Add the same two Turso variables in Vercel’s Production environment before deploying. Set `NEXT_PUBLIC_SITE_URL` to the public site URL to generate canonical social-preview links. The app uses Turso for persistent data; it does not use a local `data/` folder.
 
 ## Trivia night runbook
 
